@@ -1,6 +1,6 @@
 # King County Housing Analytics 🏠
 
-![https://github.com/dumindagamage/Home-Value-Analysis/blob/wip/resources/images/home_analysis_banner.png?raw=true)
+![](https://github.com/dumindagamage/Home-Value-Analysis/blob/wip/resources/images/home_analysis_banner.png?raw=true)
 
 ---
 
