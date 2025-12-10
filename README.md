@@ -49,7 +49,6 @@ The project uses the **King County House Sales dataset** (`kc_house_data.csv`).
 | **sqft_living15**| Integer | The average interior living space square footage of the nearest 15 neighbors. |
 | **sqft_lot15** | Integer | The average lot size square footage of the nearest 15 neighbors. |
 
-
 ## Business Requirements
 ### 🏷️ User Group 1: Buyers
 * **Affordability:** Identify the top 10 most affordable zip codes.
