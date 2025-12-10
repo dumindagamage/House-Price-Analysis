@@ -214,7 +214,7 @@ st.sidebar.markdown("---")
 # Global Filters
 st.sidebar.header("📉 Global Filters")
 all_zipcodes = sorted(df['zipcode'].unique())
-selected_zipcodes = st.sidebar.multiselect("Filter Charts by Zipcode", all_zipcodes, default=all_zipcodes[:5])
+selected_zipcodes = st.sidebar.multiselect("Filter Charts by Zipcode", all_zipcodes, default=[])
 st.sidebar.markdown("---")
 
 # Location Price Checker
