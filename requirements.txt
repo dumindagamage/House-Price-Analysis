@@ -1,17 +1,15 @@
-# Loosen major constraints to avoid conflicts
-numpy>=1.26.0
-pandas>=2.1.0
-matplotlib>=3.8.0
-seaborn>=0.13.0
-ydata-profiling>=4.12.0  # Consider removing for production
-plotly>=5.17.0
-ppscore>=1.1.0  # Consider removing for production
-streamlit==1.40.2  # Keep pinned for consistency
-feature-engine>=1.6.0
-imbalanced-learn>=0.11.0
-scikit-learn>=1.3.0
-xgboost>=1.7.0
-yellowbrick>=1.5  # Consider removing for production
-Pillow>=10.0.0
-scipy>=1.11.0
-pingouin>=0.5.0  # Changed from pinned version
+feature-engine==1.6.1
+ipykernel==7.1.0
+joblib==1.5.2
+matplotlib==3.8.0
+numpy==1.26.1
+pandas==2.1.1
+plotly==5.17.0
+scikit-learn>=1.4.0
+scipy==1.13.1
+seaborn==0.13.2
+statsmodels==0.14.6
+streamlit==1.40.2
+xgboost==1.7.6
+ydata-profiling==4.12.0
+yellowbrick==1.5
