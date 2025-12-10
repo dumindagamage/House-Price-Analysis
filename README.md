@@ -53,7 +53,7 @@ The project uses the **King County House Sales dataset** (`kc_house_data.csv`).
 ## Business Requirements
 ### 🏷️ User Group 1: Buyers
 * **Affordability:** Identify the top 10 most affordable zip codes.
-* **Value Assessment:** Quantify the premium for "Waterfront" properties.
+* **Value Assessment:** Quantify the premium for scenic attributes (Waterfront or High-Quality Views) for properties.
 * **Feature Importance:** Determine house grade vs condition impact on price.
 * **Prediction:** Estimate fair market value to make competitive offers.
 
@@ -71,9 +71,13 @@ The following hypotheses were posed at the project's inception and validated thr
 * **Validation:** Analysis of median price per zip code visualized via bar charts.
 * **Outcome:** **Confirmed**. The analysis identified specific zip codes (e.g., 98002, 98168) where the median price is less than half of the county average, validating the "Affordability" user story.
 
-### Hypothesis 2: Waterfront properties are significantly more expensive than non-waterfront properties.
-* **Validation:** Box plot and Bar plot for the visualization. Use the Mann-Whitney U Test to conmfirm the significance since price is non-normal.
-* **Outcome:** **Confirmed**. Waterfront homes command a considerable premium. This confirms that the view is a statistically significant value driver.
+### Hypothesis 2: Properties with scenic attributes (Waterfront or High-Quality Views) command a statistically significant price premium compared to standard properties.
+* **Validation Tests:**
+    1.  **Mann-Whitney U Test (Waterfront):** Used to compare the binary "Waterfront vs. Non-Waterfront" groups.
+    2.  **Kruskal-Wallis H Test (View):** Used to compare the five distinct view categories (0–4) to ensure the price difference wasn't just random.
+* **Outcome:** **Confirmed**.
+    * **Waterfront:** Validated as the single most valuable binary feature.
+    * **View:** The Kruskal-Wallis test (Statistic: 1,936, p < 0.05) confirmed that view quality is a significant price driver.
 
 ### Hypothesis 3: Construction Grade has a stronger impact on price than Condition.
 * **Validation:** Box plot and Bar Plot for the high level analysis of the each feature. Heatmap Interaction Analysis & Correlation Comparison.Use Spearman Correlation because Grade/Condition are ordinal categories
@@ -145,7 +149,7 @@ The research methodologies were chosen based on the specific distribution of the
 | :--- | :--- | :--- |
 | **Buyers** | | |
 | **1. Affordability:**<br>Identify the top 10 most affordable zip codes. | **Bar Chart:**<br>Top 10 Zip Codes by Median Price. | **Validates Hypothesis 1.**<br>A bar chart allows for a clear ranking of categorical data (zip codes). We use the **Median** rather than the Mean to prevent high-priced outliers (luxury estates) from skewing the perception of affordability, ensuring buyers see a realistic entry point. |
-| **2. Value Assessment:**<br>Quantify the premium for "Waterfront" properties. | **Box Plot, Bar Plot & Mann-Whitney U Test:**<br>Price distribution by Waterfront status. | **Validates Hypothesis 2.**<br>As established in Notebook 1, price data is **non-normal**. A Box Plot visually contrasts the spread and outliers of the two groups, while the Mann-Whitney U test provides the necessary non-parametric statistical confirmation that the premium is significant and not due to chance. |
+| **2. Scenery & View Value:**<br>Quantify the premium for "Waterfront" and "High View" properties. | **Box Plots & Statistical Tests:**<br>Mann-Whitney U (Waterfront) & Kruskal-Wallis (View). | **Validates Hypothesis 2.**<br>Since price data is non-normal, I used non-parametric tests to confirm significance. The **Mann-Whitney U** test confirmed the waterfront premium, while the **Kruskal-Wallis** test proved that the view quality (from 0 to 4) significantly increases value, with "Excellent" views adding over $750k in median value. |
 | **3. Feature Importance:**<br>Determine if House Grade or Condition matters more. | **Heatmap, Spearman Correlation, Box Plot & Bar Plot,:**<br>Interaction between Grade, Condition, and Price. | **Validates Hypothesis 3.**<br>Since Grade and Condition are **ordinal** variables (ranked categories), Spearman Correlation is the appropriate statistical measure. The heatmap visualizes the interaction, confirming that higher construction grades correlate more strongly with price than cosmetic condition. |
 | **4. Prediction:**<br>Estimate fair market value to make competitive offers. | **Predictive Model:**<br>Random Forest Regressor. | **Operationalizes Findings.**<br>House prices are influenced by **non-linear relationships** (e.g., the interaction between latitude/longitude and property size). A Random Forest model captures these complexities better than simple linear formulas, providing a "Fair Value" estimate to the buyers |
 | **Sellers** | | |
