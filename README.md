@@ -24,7 +24,7 @@ The project uses the **King County House Sales dataset** (`kc_house_data.csv`).
 * **Source:** [Kaggle - House Sales in King County, USA](https://www.kaggle.com/datasets/harlfoxem/housesalesprediction)
 * **Volume:** ~21,613 records (from May 2014 - May 2015)
 * **Features:** 21 variables including Price (Target), Bedrooms, Bathrooms, Sqft Living, Floors, Waterfront, View, Condition, Grade, Zipcode, and Year Built.
-* **Data Dictionary:**
+* **Data Dictionary:** (Generated with AI support)
 
 | Variable | Data Type | Description |
 | :--- | :--- | :--- |
@@ -51,13 +51,13 @@ The project uses the **King County House Sales dataset** (`kc_house_data.csv`).
 | **sqft_lot15** | Integer | The average lot size square footage of the nearest 15 neighbors. |
 
 ## Business Requirements
-### 🏷️ User Group 1: Buyers
+### User Group 1: Buyers
 * **Affordability:** Identify the top 10 most affordable zip codes.
 * **Value Assessment:** Quantify the premium for scenic attributes (Waterfront or High-Quality Views) for properties.
 * **Feature Importance:** Determine house grade vs condition impact on price.
 * **Prediction:** Estimate fair market value to make competitive offers.
 
-### 💰 User Group 2: Sellers
+### User Group 2: Sellers
 * **Feature Value:** Determine which specific home attributes contribute most significantly to property valuation
 * **ROI Analysis:** Determine if renovations yield a statistically significant return.
 * **Timing:** Identify the best month to sell for maximum profit.
@@ -156,7 +156,7 @@ The research methodologies were chosen based on the specific distribution of the
 **5. Feature Value:**<br>Identify and validate specific home features that add the most financial value. | **Heatmap & Validation Chart:**<br>Feature Correlation (Pearson vs. Spearman). | **Validates Hypothesis 6.**<br>Sellers need a reliable hierarchy of value. I used a dual-method comparison (Pearson vs. Spearman) to validate that **Living Space** and **Grade** are the top drivers, ensuring outliers didn't skew the results. The analysis visually proves that **Bathrooms** outperform **Bedrooms**, allowing sellers to prioritize the right attributes in marketing. |
 | **6. Timing:**<br>Identify the best month to sell for maximum profit. | **Line Chart (Time-Series):**<br>Median Price vs. Month Sold. | **Validates Hypothesis 4.**<br>To identify seasonal trends, a time-series view is essential. This visualization exposes the cyclical nature of the market, highlighting the Spring/Summer peak (April/May) to advise sellers on the optimal window for listing. |
 | **7. ROI Analysis:**<br>Determine if renovations yield a statistically significant return. | **Interaction Plot (Bar Chart):**<br>Price by Age Group grouped by Renovation Status. | **Validates Hypothesis 5.**<br>The value of renovation is **not uniform**. A simple average would hide the truth. This plot separates the data by Era (Pre-war, Mid-Century, Modern), revealing that Mid-Century homes yield a significantly higher ROI (~60%) than other eras. |
-| **8. Listing Strategy:**<br>Set optimal prices based on neighborhood trends. | **Predictive Model:**<br>Random Forest. | **Operationalizes Findings.**<br>While buyers use the model to find deals, sellers use it to establish a **baseline market value**. By inputting their specific home features, they get a data-driven starting price that removes emotional bias from the listing strategy. |
+| **8. Listing Strategy:**<br>Set optimal prices based on the neighborhood. | **Predictive Model:**<br>Random Forest Regressor. | **Operationalizes Findings.**<br>House prices are influenced by **non-linear relationships** (e.g., the interaction between latitude/longitude and property size). A Random Forest model captures these complexities better than simple linear formulas, providing a "Fair Value" estimate to the buyers |
 
 ## Analysis techniques used
 * **Methods & Limitations:** I used standard descriptive statistics (like calculating the mean and median) and created visualizations (histograms, boxplots, scatter plots) to find patterns. A main limitation was that the data is older and only covers one year, so I couldn't look at long-term price trends.
@@ -181,10 +181,13 @@ The dashboard was purposefully designed with accessibility for non-technical use
 * **Price Estimator:** An interactive prediction tool where users select their role (Buyer or Seller). It provides a specific "Fair Value" estimate with a calculated safety margin to help negotiate deals or set listing prices.
 
 
-## Unfixed Bugs - TODO
-* Please mention unfixed bugs and why they were not fixed. This section should include shortcomings of the frameworks or technologies used. Although time can be a significant variable to consider, paucity of time and difficulty understanding implementation are not valid reasons to leave bugs unfixed.
-* Did you recognise gaps in your knowledge, and how did you address them?
-* If applicable, include evidence of feedback received (from peers or instructors) and how it improved your approach or understanding.
+## Unfixed Bugs 
+At the time of final deployment, there are **no known unfixed bugs**. All core features, including the predictive model, dashboard filtering, and interactive charts, function as expected.
+**Closing Knowledge Gaps**
+During the project lifecycle, I identified gaps in my understanding of advanced ML models, hyper parametyer tuning, advanced statistical testing and the specific dependency requirements for cloud deployment. I addressed these challenges by:
+* **Revisiting Core Concepts:** I reviewed specific modules in the Code Institute LMS to reinforce my understanding of hypothesis testing.
+* **Documentation:** I relied heavily on the official documentation for **Streamlit** and **Scikit-Learn** to understand version compatibility (e.g., solving the `monotonic_cst` error).
+* **AI Assistance:** I utilized AI tools to clarify doubts regarding complex concepts and to optimize code for performance.
 
 ## Development Roadmap
 The project followed a 5-phase development lifecycle:
