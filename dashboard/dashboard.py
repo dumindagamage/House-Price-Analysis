@@ -1,3 +1,9 @@
+# ==============================================================================================================
+# The dashboard architecture was developed using the single-page Streamlit template provided during the Code Institute masterclass as a foundational framework.
+# Plotly was utilized to deliver a visually appealing and interactive user experience
+# Used the median values of the un captured features to create a template input for the model prediction
+# ==============================================================================================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -18,6 +24,7 @@ st.set_page_config(
 st.image("https://github.com/dumindagamage/House-Price-Analysis/blob/wip/resources/images/dashboard_header.png?raw=true", use_container_width=True)
 
 # --- CUSTOM CSS ---
+# Adjust tab font size and weight (Generated with AI assistance)
 st.markdown("""
 <style>
     button[data-baseweb="tab"] {
@@ -67,7 +74,7 @@ MODEL_METRICS = {
     "RMSE": 129513
 }
 
-@st.cache_data
+@st.cache_data # memory caching for data loading for memory optimization
 def load_data():
     paths_to_try = [DATA_PATH, '../' + DATA_PATH]
     df = None
@@ -83,17 +90,15 @@ def load_data():
                 continue
                 
     if df is None:
-        st.error(f"❌ Critical Error: Could not find dataset at {DATA_PATH}.")
+        st.error(f"❌ Critical Error: Could not find dataset at {DATA_PATH}.") # Check DATA_PATH
         st.stop()
 
     # --- CLEANING & PREP ---
-    if 'Unnamed: 0' in df.columns:
+    if 'Unnamed: 0' in df.columns: # Drop Index Column
         df = df.drop(columns=['Unnamed: 0'])
 
-    if 'date' in df.columns:
+    if 'date' in df.columns: # Date type conversion & Create Month Name
         df['date'] = pd.to_datetime(df['date'])
-        df['yr_sold'] = df['date'].dt.year
-        df['month_sold'] = df['date'].dt.month
         df['month_name'] = df['date'].dt.strftime('%b')
     
     # Ensure String Zipcode
@@ -102,27 +107,18 @@ def load_data():
 
     # Feature: House Age
     if 'house_age' not in df.columns and 'yr_built' in df.columns:
-        df['house_age'] = df['yr_sold'] - df['yr_built']
+        df['house_age'] = df['sale_year'] - df['yr_built']
 
-    # Feature: Era
+    # Feature: Era Categorization with explanatory labels
     def get_era(yr):
-        if yr < 1950: return 'Pre-1950'
-        elif yr <= 1990: return '1950-1990'
-        else: return 'Post-1990'
+        if yr < 1950: return 'Pre-War'
+        elif yr <= 1990: return 'Mid-Century'
+        else: return 'Modern'
         
     df['era'] = df['yr_built'].apply(get_era)
-
-    # Feature: SqFt Bin
-    sqft_bins = [0, 1000, 1500, 2000, 2500, 3000, 4000, 10000]
-    sqft_labels = ['<1k', '1k-1.5k', '1.5k-2k', '2k-2.5k', '2.5k-3k', '3k-4k', '4k+']
-    df['sqft_bin'] = pd.cut(df['sqft_living'], bins=sqft_bins, labels=sqft_labels)
     
     # Feature: Price per SqFt
     df['price_per_sqft'] = df['price'] / df['sqft_living']
-
-    # Feature: Is Renovated
-    if 'yr_renovated' in df.columns:
-        df['is_renovated'] = df['yr_renovated'].apply(lambda x: 1 if x > 0 else 0)
 
     return df, loaded_path
 
@@ -171,17 +167,16 @@ def prepare_input_data(user_inputs, ref_df, trained_model):
     input_df['yr_built'] = user_inputs['yr_built']
     input_df['zipcode'] = str(user_inputs['zipcode'])
     
-    # 3. Feature Engineering (Match Notebook Logic)
-    input_df['yr_sold'] = 2015 
-    input_df['house_age'] = input_df['yr_sold'] - input_df['yr_built']
-    if 'month_sold' not in input_df.columns:
-        input_df['month_sold'] = 6 # Default to June if missing
+    # 3. Setting values for the engineered features
+    input_df['sale_year'] = 2015 # Set latest year in dataset
+    input_df['house_age'] = input_df['sale_year'] - input_df['yr_built']
+    if 'sale_month' not in input_df.columns:
+        input_df['sale_month'] = 6 # Default to June if missing
     
-    # --- CRITICAL FIX: FEATURE ALIGNMENT ---
-    # We must only pass the exact columns the model expects.
-    
+    # --- CRITICAL STEP: FEATURE ALIGNMENT ---
+    # Need to pass the exact columns the model expects.  
     if hasattr(trained_model, 'feature_names_in_'):
-        # Best Case: The model knows its own features
+        # Best Case: Extract features from the model 
         expected_cols = trained_model.feature_names_in_
         
         # Add any missing columns (set to 0)
@@ -193,7 +188,6 @@ def prepare_input_data(user_inputs, ref_df, trained_model):
         input_df = input_df[expected_cols]
         
     else:
-        # Fallback for older sklearn models
         # Manually drop the known "Dashboard-Only" columns
         cols_to_drop = [
             'price', 'price_log', 'price_per_sqft', 'id', 'date', 
@@ -220,7 +214,7 @@ st.sidebar.markdown("---")
 # Location Price Checker
 with st.sidebar.container(border=True):
     st.markdown("### 📍 Location Price Checker")
-    st.info("Quickly check market stats for any Zipcode.")
+    st.info("Quickly check market average for any Zipcode.")
     check_zip = st.selectbox("Select Zipcode:", sorted(df['zipcode'].unique()), key="checker_zip")
     if check_zip:
         area_stats = df[df['zipcode'] == check_zip]['price']
@@ -380,15 +374,15 @@ with tab2:
     rc1, rc2 = st.columns(2)
     with rc1:
         st.markdown("""<div class="rec-card"><div class="rec-title">🔨 Renovate Strategy</div>
-                    <div class="rec-text">It's advisable to target <b>1950-1990 builds</b> for maximum ROI. These homes often have good "bones" but outdated finishes, offering potential for value creation.</div></div>""", unsafe_allow_html=True)
+                    <div class="rec-text">Data shows 1950-1990 builds yield the highest price jump compared to unrenovated peers.</div></div>""", unsafe_allow_html=True)
         st.markdown("""<div class="rec-card"><div class="rec-title">🏗️ Features & Grade</div>
-                    <div class="rec-text">It's advisable to prioritize <b>Construction Grade</b> over immediate condition. A high-grade house in fair condition is generally a better investment than a low-grade 'mint condition' property.</div></div>""", unsafe_allow_html=True)
+                    <div class="rec-text">Data says to prioritize <b>Construction Grade</b> over immediate condition. A high-grade house in fair condition is generally a better investment than a low-grade 'mint condition' property.</div></div>""", unsafe_allow_html=True)
 
     with rc2:
         st.markdown("""<div class="rec-card"><div class="rec-title">🌊 Scenery Attributes</div>
-                    <div class="rec-text">It's advisable to focus on <b>Space (SqFt) and Grade</b> for functional value. Waterfront properties often carry a significant "Scenery Tax" that drives up cost without adding daily utility.</div></div>""", unsafe_allow_html=True)
+                    <div class="rec-text">Data says focus more on <b>Space (SqFt) and Grade</b> for functional value unless the View and Waterfront is not the priority. Scenery properties (Specially waterfront) often carry a significantly high price that drives up cost.</div></div>""", unsafe_allow_html=True)
         st.markdown("""<div class="rec-card"><div class="rec-title">📐 Space Optimization</div>
-                    <div class="rec-text">It's advisable to look within the <b>2,000–2,500 sq. ft. bracket</b>. This range often offers the most efficient Price per Sq. Ft. for buyers seeking value.</div></div>""", unsafe_allow_html=True)
+                    <div class="rec-text">Data says to look within the <b>2,000–2,500 sq. ft. bracket</b>. This range often offers the most efficient Price per Sq. Ft. for buyers seeking value.</div></div>""", unsafe_allow_html=True)
 
 # =============================================================================
 # --- TAB 3: SELLER ANALYSIS ---
@@ -427,9 +421,21 @@ with tab3:
     
     with s3:
         st.subheader("3. Best Time to Sell")
-        seasonal = filtered_df.groupby('month_sold')['price'].median().reset_index()
-        fig_season = px.line(seasonal, x='month_sold', y='price', markers=True, title="Median Price Trend by Month",
-                             labels={'month_sold': 'Month (1-12)', 'price': 'Median Price ($)'}, color_discrete_sequence=['#ff7f0e'])
+        # Define the correct order
+        month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        # Convert column to Categorical type
+        filtered_df['month_name'] = pd.Categorical(
+            filtered_df['month_name'], 
+            categories=month_order, 
+            ordered=True
+        )
+        # Groupby (Pandas will now respect the logical order)
+        seasonal = filtered_df.groupby('month_name')['price'].median().reset_index()
+        # Explicit sort to be safe
+        seasonal = seasonal.sort_values('month_name')
+        fig_season = px.line(seasonal, x='month_name', y='price', markers=True, title="Median Price Trend by Month",
+                             labels={'month_name': 'Month of the Year', 'price': 'Median Price ($)'}, color_discrete_sequence=['#ff7f0e'])
         fig_season.update_xaxes(tickmode='linear', dtick=1)
         st.plotly_chart(fig_season, use_container_width=True)
 
@@ -442,7 +448,7 @@ with tab3:
             
             fig_reno_era = px.bar(reno_era, x='era', y='price', color='Status', barmode='group',
                                   category_orders={'era': era_order}, text_auto='.2s', title="Renovated vs. Unrenovated Price by Era",
-                                  labels={'era': 'Construction Era', 'price': 'Median Price ($)'},
+                                  labels={'era': 'Construction Era - Pre 1950 (war) | 1950 - 1990 (Mid) | Post 1990 (Modern)', 'price': 'Median Price ($)'},
                                   color_discrete_map={'Not Renovated': '#95a5a6', 'Renovated': '#27ae60'})
             st.plotly_chart(fig_reno_era, use_container_width=True)
         else:
@@ -466,7 +472,7 @@ with tab3:
     sc1, sc2, sc3 = st.columns(3)
     with sc1:
         st.markdown("""<div class="seller-card"><div class="seller-title">🔨 Renovate Strategy</div>
-                    <div class="seller-text">It's advisable to target <b>1950-1990 builds</b> for renovations. Data shows these homes yield the highest price jump compared to unrenovated peers.</div></div>""", unsafe_allow_html=True)
+                    <div class="seller-text">Data shows 1950-1990 (Mid Century) homes yield the highest price jump compared to unrenovated peers.</div></div>""", unsafe_allow_html=True)
     with sc2:
         st.markdown("""<div class="seller-card"><div class="seller-title">🗓️ Timing</div>
                     <div class="seller-text">It's advisable to list your property in <b>April or May</b>. The market consistently shows a peak in median sales prices during these spring months.</div></div>""", unsafe_allow_html=True)
@@ -487,90 +493,94 @@ with tab4:
         st.markdown("#### 1. Select Your Role")
         role = st.radio("I am a:", ["Buyer", "Seller"], horizontal=True, label_visibility="collapsed")
         
-        # --- 2. Input Form ---
         st.markdown("#### 2. Enter Property Details")
         st.caption("Ranges below update automatically based on the selected Zipcode.")
         
+        # --- CRITICAL FIX: ZIPCODE OUTSIDE THE FORM ---
+        # This allows the app to rerun immediately when Zipcode changes
+        p_zip = st.selectbox("Select Zipcode Area", sorted(df['zipcode'].unique()))
+        
+        # Filter context to set min/max/avg defaults based on the selection
+        zip_df = df[df['zipcode'] == p_zip]
+        if zip_df.empty: zip_df = df
+        
+        # Define ranges based on the selected Zipcode
+        # Bedrooms
+        min_bed = int(zip_df['bedrooms'].min())
+        max_bed = int(zip_df['bedrooms'].max())
+        avg_bed = int(zip_df['bedrooms'].median())
+        
+        # Bathrooms
+        min_bath = float(zip_df['bathrooms'].min())
+        max_bath = float(zip_df['bathrooms'].max())
+        avg_bath = float(zip_df['bathrooms'].median())
+        
+        # SqFt
+        min_sq = int(zip_df['sqft_living'].min())
+        max_sq = int(zip_df['sqft_living'].max())
+        avg_sq = int(zip_df['sqft_living'].median())
+        
+        # Year
+        min_yr = int(zip_df['yr_built'].min())
+        max_yr = int(zip_df['yr_built'].max())
+        avg_yr = int(zip_df['yr_built'].median())
+
+        # --- FORM START ---
         with st.form("pred_form"):
-            p_zip = st.selectbox("Select Zipcode Area", sorted(df['zipcode'].unique()))
-            
-            # Filter context to set min/max/avg defaults
-            zip_df = df[df['zipcode'] == p_zip]
-            if zip_df.empty: zip_df = df
-            
             # --- ROW 1 ---
             c1, c2, c3 = st.columns(3)
             with c1:
-                # Bedrooms
-                min_bed = int(zip_df['bedrooms'].min())
-                max_bed = int(zip_df['bedrooms'].max())
-                avg_bed = int(zip_df['bedrooms'].median())
-                p_bed = st.slider("Bedrooms", min_bed, max(max_bed, 6), avg_bed)
-                
-                # Bathrooms
-                min_bath = float(zip_df['bathrooms'].min())
-                max_bath = float(zip_df['bathrooms'].max())
-                avg_bath = float(zip_df['bathrooms'].median())
-                p_bath = st.slider("Bathrooms", min_bath, max(max_bath, 5.0), avg_bath, step=0.25)
+                # Key includes p_zip to force reset when zip changes
+                p_bed = st.slider("Bedrooms", min_bed, max(max_bed, 6), avg_bed, key=f"bed_{p_zip}")
+                p_bath = st.slider("Bathrooms", min_bath, max(max_bath, 5.0), avg_bath, step=0.25, key=f"bath_{p_zip}")
                 
             with c2:
-                # Living Space
-                min_sq = int(zip_df['sqft_living'].min())
-                max_sq = int(zip_df['sqft_living'].max())
-                avg_sq = int(zip_df['sqft_living'].median())
                 st.write("Living Space (Sq. Ft.)")
-                sq_range = st.slider("Select Range", min_sq, max(max_sq, 3000), (avg_sq, avg_sq + 500))
+                # Slider logic: default to average, range starts from min
+                sq_range = st.slider("Select Range", min_sq, max(max_sq, 3000), (avg_sq, avg_sq + 500), key=f"sq_{p_zip}")
                 p_sqft = sum(sq_range) / 2
                 
-                # Floors
-                p_floor = st.selectbox("Floors", [1.0, 1.5, 2.0, 2.5, 3.0])
+                p_floor = st.selectbox("Floors", [1.0, 1.5, 2.0, 2.5, 3.0], key=f"floor_{p_zip}")
                 
             with c3:
-                # Year Built
-                min_yr = int(zip_df['yr_built'].min())
-                max_yr = int(zip_df['yr_built'].max())
-                avg_yr = int(zip_df['yr_built'].median())
                 st.write("Year Built")
-                yr_range = st.slider("Select Era", min_yr, max_yr, (avg_yr-10, avg_yr+10))
+                yr_range = st.slider("Select Era", min_yr, max_yr, (avg_yr-10, avg_yr+10), key=f"yr_{p_zip}")
                 p_year = int(sum(yr_range)/2)
                 
-                p_water = st.checkbox("Waterfront Property?")
+                p_water = st.checkbox("Waterfront Property?", key=f"water_{p_zip}")
 
             st.markdown("---")
             
             # --- ROW 2 (Qualitative) ---
             q1, q2, q3 = st.columns(3)
             with q1:
-                # Grade - Categorized
                 grade_map = {
                     "Standard (1-6)": 6, 
                     "Good (7-8)": 7.5, 
                     "Better (9-10)": 9.5, 
                     "Luxury (11-13)": 12
                 }
-                grade_label = st.selectbox("Construction Grade", list(grade_map.keys()), index=1)
+                grade_label = st.selectbox("Construction Grade", list(grade_map.keys()), index=1, key=f"grade_{p_zip}")
                 p_grade = grade_map[grade_label]
                 
             with q2:
-                # Condition
                 cond_map = {
                     "1 - Worn Out": 1, "2 - Fair": 2, "3 - Average": 3, 
                     "4 - Good": 4, "5 - Excellent": 5
                 }
-                cond_label = st.selectbox("Condition", list(cond_map.keys()), index=2)
+                cond_label = st.selectbox("Condition", list(cond_map.keys()), index=2, key=f"cond_{p_zip}")
                 p_cond = cond_map[cond_label]
                 
             with q3:
-                # View
                 view_map = {
                     "0 - No View": 0, "1 - Fair": 1, "2 - Average": 2, 
                     "3 - Good": 3, "4 - Stunning": 4
                 }
-                view_label = st.selectbox("View Quality", list(view_map.keys()), index=0)
+                view_label = st.selectbox("View Quality", list(view_map.keys()), index=0, key=f"view_{p_zip}")
                 p_view = view_map[view_label]
                 
-            submit = st.form_submit_button("Estimate Value", type="primary", use_container_width=True)
-            
+            submit = st.form_submit_button(" Estimate Value", type="primary", use_container_width=True)            
+        
         if submit:
             u_input = {
                 'zipcode': p_zip, 'bedrooms': p_bed, 'bathrooms': p_bath,
