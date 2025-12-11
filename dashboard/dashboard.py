@@ -21,7 +21,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-st.image("https://github.com/dumindagamage/House-Price-Analysis/blob/wip/resources/images/dashboard_header.png?raw=true", use_container_width=True)
+
+st.image("resources/images/dashboard_header.png", use_container_width=True)
 
 # --- CUSTOM CSS ---
 # Adjust tab font size and weight (Generated with AI assistance)
@@ -297,8 +298,8 @@ with tab2:
 
     with b2:
         st.subheader("2. Best Value for Money (Size)")
-        df['sqft_detailed_bin'] = pd.cut(df['sqft_living'], bins=range(0, 5000, 250))
-        size_value = df.groupby('sqft_detailed_bin')['price_per_sqft'].median().reset_index()
+        filtered_df['sqft_detailed_bin'] = pd.cut(filtered_df['sqft_living'], bins=range(0, 5000, 250))
+        size_value = filtered_df.groupby('sqft_detailed_bin')['price_per_sqft'].median().reset_index()
         size_value['sqft_mid'] = size_value['sqft_detailed_bin'].apply(lambda x: x.mid)
         
         fig_value = px.line(
@@ -396,7 +397,7 @@ with tab3:
     with s1:
         st.subheader("1. Relative Influence of Features")
         corr_cols = ['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'view', 'condition', 'grade']
-        corr = df[[c for c in corr_cols if c in df.columns]].corr()['price'].sort_values(ascending=False).drop('price')
+        corr = filtered_df[[c for c in corr_cols if c in df.columns]].corr()['price'].sort_values(ascending=False).drop('price')
         corr_pos = corr[corr > 0].reset_index()
         corr_pos.columns = ['Feature', 'Correlation']
         corr_pos['Feature'] = corr_pos['Feature'].replace({'sqft_living': 'Living Space', 'sqft_above': 'Space Above Ground'})
