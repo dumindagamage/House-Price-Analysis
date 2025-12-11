@@ -24,30 +24,6 @@ The project uses the **King County House Sales dataset** (`kc_house_data.csv`).
 * **Source:** [Kaggle - House Sales in King County, USA](https://www.kaggle.com/datasets/harlfoxem/housesalesprediction)
 * **Volume:** ~21,613 records (from May 2014 - May 2015)
 * **Features:** 21 variables including Price (Target), Bedrooms, Bathrooms, Sqft Living, Floors, Waterfront, View, Condition, Grade, Zipcode, and Year Built.
-* **Data Dictionary:** (Generated with AI support)
-
-| Variable | Data Type | Description |
-| :--- | :--- | :--- |
-| **date** | Date | The date the home sale was completed. |
-| **price** | Float | The price the home was sold for (Target Variable). |
-| **bedrooms** | Integer | Number of bedrooms in the house. |
-| **bathrooms** | Float | Number of bathrooms (0.5 indicates a toilet/sink but no shower). |
-| **sqft_living** | Integer | Square footage of the interior living space. |
-| **sqft_lot** | Integer | Square footage of the entire land lot. |
-| **floors** | Float | Total number of floors (levels) in the house. |
-| **waterfront** | Boolean | Whether the house has a view of the waterfront (0 = No, 1 = Yes). |
-| **view** | Integer | A rating of the view quality (0 = Poor to 4 = Excellent). |
-| **condition** | Integer | A rating of the overall condition of the house (1 = Poor to 5 = Excellent). |
-| **grade** | Integer | An overall grade given to the housing unit based on the King County grading system (1 = Poor to 13 = Excellent). |
-| **sqft_above** | Integer | The square footage of the interior housing space that is above ground level. |
-| **sqft_basement**| Integer | The square footage of the interior housing space that is below ground level. |
-| **yr_built** | Integer | The year the house was initially built. |
-| **yr_renovated** | Integer | The year of the house’s last renovation (0 if never renovated). |
-| **zipcode** | String | The zip code area where the house is located. |
-| **lat** | Float | Latitude coordinate of the property. |
-| **long** | Float | Longitude coordinate of the property. |
-| **sqft_living15**| Integer | The average interior living space square footage of the nearest 15 neighbors. |
-| **sqft_lot15** | Integer | The average lot size square footage of the nearest 15 neighbors. |
 
 ## Business Requirements
 ### User Group 1: Buyers
