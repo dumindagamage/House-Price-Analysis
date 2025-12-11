@@ -267,12 +267,27 @@ with tab1:
     st.markdown("### 🗺️ Sales Map")
     map_data = filtered_df.sample(min(len(filtered_df), 3000))
     fig_map = px.scatter_mapbox(
-        map_data, lat="lat", lon="long", color="price", size_max=15, zoom=9,
+        map_data, lat="lat", lon="long", color="price", size_max=15, zoom=9,hover_data=['zipcode'],
         mapbox_style="carto-positron", title="Sold Properties (Color = Price)",
         color_continuous_scale="RdYlGn_r"
     )
     st.plotly_chart(fig_map, use_container_width=True)
 
+
+# =============================================================================
+# RECOMMENDATIONS CARD STYLE
+# =============================================================================   
+    recomendation_card_style = """
+    <style>
+    .rec-card {
+        background-color: #e8f4f8; padding: 20px; border-radius: 10px;
+        border-left: 5px solid #3498db; margin-bottom: 10px;
+    }
+    .rec-title { font-weight: bold; font-size: 18px; color: #2c3e50; margin-bottom: 5px; }
+    .rec-text { font-size: 14px; color: #34495e; }
+    </style>
+    """
+    st.markdown(recomendation_card_style, unsafe_allow_html=True)
 # =============================================================================
 # --- TAB 2: BUYER ANALYSIS ---
 # -----------------------------------------------------------------------------
@@ -281,13 +296,15 @@ with tab2:
     
     b1, b2 = st.columns(2)
     with b1:
-        st.subheader("1. Most Affordable Zipcodes")
+        # st.subheader("1. Most Affordable Zipcodes")
+        st.markdown("""<div class="rec-card"><div class="rec-title">📍 Location & Affordability</div>
+            <div class="rec-text">According to King County Data, it's advisable to explore zip codes like <b>98002 and 98168</b>. The data identifies these areas as the most affordable pockets, often trading at less than 50% of the county median price.</div></div>""", unsafe_allow_html=True)
         affordability = df.groupby('zipcode')['price'].median().sort_values().head(10).reset_index()
         overall_median = df['price'].median()
         
         fig_afford = px.bar(
             affordability, x='zipcode', y='price', text_auto='.2s',
-            title="Median Price by Zipcode (vs. County Median)",
+            title="Average Price by Zipcode (vs. County Median)",
             labels={'price': 'Median Price ($)', 'zipcode': 'Zip Code'},
             color_discrete_sequence=['#1f77b4']
         )
@@ -297,7 +314,10 @@ with tab2:
         st.plotly_chart(fig_afford, use_container_width=True)
 
     with b2:
-        st.subheader("2. Best Value for Money (Size)")
+        # st.subheader("2. Best Value for Money (Size)")
+        st.markdown("""<div class="rec-card"><div class="rec-title">📐 Best Value for Money (Size) </div>
+                    <div class="rec-text">King Country Data says to look within the <b>2,000–2,500 sq. ft. bracket</b>. This range often offers the most efficient Price per Sq. Ft. for buyers seeking value.</div>
+                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)  
         filtered_df['sqft_detailed_bin'] = pd.cut(filtered_df['sqft_living'], bins=range(0, 5000, 250))
         size_value = filtered_df.groupby('sqft_detailed_bin')['price_per_sqft'].median().reset_index()
         size_value['sqft_mid'] = size_value['sqft_detailed_bin'].apply(lambda x: x.mid)
@@ -311,10 +331,13 @@ with tab2:
         st.plotly_chart(fig_value, use_container_width=True)
 
     st.markdown("---")
-    
+    st.markdown("""<div class="rec-card"><div class="rec-title">🏗️ House Condition & Grade</div>
+                <div class="rec-text">King Country Data says to prioritize <b>Construction Grade</b> over immediate condition. A high-grade house in fair condition is generally a better investment than a low-grade 'mint condition' property.</div>
+                <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)  
+
     b3, b4 = st.columns(2)
     with b3:
-        st.subheader("3. Average Price vs. Grade")
+        #st.subheader("3. Average Price vs. Grade")
         def categorize_grade(g):
             if g <= 6: return "Low (1-6)"
             elif g <= 9: return "Good (7-9)"
@@ -325,13 +348,13 @@ with tab2:
         grade_price = filtered_df.groupby('grade_cat')['price'].median().reindex(grade_order).reset_index()
         
         fig_grade = px.bar(grade_price, x='grade_cat', y='price', text_auto='.2s',
-                           title="Median Price by Construction Grade",
+                           title="Average Price by Construction Grade",
                            color='grade_cat', color_discrete_map={"Low (1-6)": "#bdc3c7", "Good (7-9)": "#f39c12", "Excellent (10-13)": "#27ae60"})
         fig_grade.update_layout(showlegend=False)
         st.plotly_chart(fig_grade, use_container_width=True)
 
     with b4:
-        st.subheader("4. Average Price vs. Condition")
+        #st.subheader("4. Average Price vs. Condition")
         cond_price = filtered_df.groupby('condition')['price'].median().reset_index()
         fig_cond = px.bar(cond_price, x='condition', y='price', text_auto='.2s',
                           title="Median Price by House Condition", color='price', color_continuous_scale='OrRd')
@@ -339,51 +362,23 @@ with tab2:
         st.plotly_chart(fig_cond, use_container_width=True)
 
     st.markdown("---")
-
+    st.markdown("""<div class="rec-card"><div class="rec-title">🌊 Scenery Attributes</div>
+                    <div class="rec-text">King Country Data says focus more on <b>Space (SqFt) and Grade</b> for functional value unless the View and Waterfront is not the priority. Scenery properties (Specially waterfront) often carry a significantly high price that drives up cost.</div>
+                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
     b5, b6 = st.columns(2)
     with b5:
-        st.subheader("5. Quantify the Premium for View")
         view_price = filtered_df.groupby('view')['price'].median().reset_index()
         fig_view_bar = px.bar(view_price, x='view', y='price', text_auto='.2s',
-                              title="Median Price by View Rating", color='price', color_continuous_scale='Teal')
+                              title="Average Price by View", color='price', color_continuous_scale='Teal')
         st.plotly_chart(fig_view_bar, use_container_width=True)
 
     with b6:
-            st.subheader("6. Quantify the Premium for Waterfront")
             wf_stats = filtered_df.groupby('waterfront')['price'].median().reset_index()
             wf_stats['label'] = wf_stats['waterfront'].map({0: 'Non-Waterfront', 1: 'Waterfront'})
-            fig_wf_pie = px.pie(wf_stats, values='price', names='label', title="Median Price Comparison",
+            fig_wf_pie = px.pie(wf_stats, values='price', names='label', title="Average Price by for Waterfront Properties",
                                 color='label', color_discrete_map={'Non-Waterfront': '#bdc3c7', 'Waterfront': '#3498db'}, hole=0.4)
             fig_wf_pie.update_traces(textinfo='label+value', texttemplate='%{label}<br>$%{value:,.0f}')
             st.plotly_chart(fig_wf_pie, use_container_width=True)
-
-    # BUYER RECOMMENDATIONS
-    st.markdown("### 💡 General Recommendations for Buyers")
-    
-    card_style = """
-    <style>
-    .rec-card {
-        background-color: #f0f2f6; padding: 20px; border-radius: 10px;
-        border-left: 5px solid #ff4b4b; margin-bottom: 10px;
-    }
-    .rec-title { font-weight: bold; font-size: 18px; color: #31333F; margin-bottom: 5px; }
-    .rec-text { font-size: 14px; color: #555; }
-    </style>
-    """
-    st.markdown(card_style, unsafe_allow_html=True)
-
-    rc1, rc2 = st.columns(2)
-    with rc1:
-        st.markdown("""<div class="rec-card"><div class="rec-title">🔨 Renovate Strategy</div>
-                    <div class="rec-text">Data shows 1950-1990 builds yield the highest price jump compared to unrenovated peers.</div></div>""", unsafe_allow_html=True)
-        st.markdown("""<div class="rec-card"><div class="rec-title">🏗️ Features & Grade</div>
-                    <div class="rec-text">Data says to prioritize <b>Construction Grade</b> over immediate condition. A high-grade house in fair condition is generally a better investment than a low-grade 'mint condition' property.</div></div>""", unsafe_allow_html=True)
-
-    with rc2:
-        st.markdown("""<div class="rec-card"><div class="rec-title">🌊 Scenery Attributes</div>
-                    <div class="rec-text">Data says focus more on <b>Space (SqFt) and Grade</b> for functional value unless the View and Waterfront is not the priority. Scenery properties (Specially waterfront) often carry a significantly high price that drives up cost.</div></div>""", unsafe_allow_html=True)
-        st.markdown("""<div class="rec-card"><div class="rec-title">📐 Space Optimization</div>
-                    <div class="rec-text">Data says to look within the <b>2,000–2,500 sq. ft. bracket</b>. This range often offers the most efficient Price per Sq. Ft. for buyers seeking value.</div></div>""", unsafe_allow_html=True)
 
 # =============================================================================
 # --- TAB 3: SELLER ANALYSIS ---
@@ -395,7 +390,9 @@ with tab3:
     s1, s2 = st.columns(2)
     
     with s1:
-        st.subheader("1. Relative Influence of Features")
+        st.markdown("""<div class="rec-card"><div class="rec-title">✨ Relative Influence of Features </div>
+            <div class="rec-text">According to King County Data, it's advisable to highlight <b>Living Space (Sq. Ft.)</b> and <b>Construction Grade</b> in your descriptions, as these are the top drivers of property value.</div>
+                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
         corr_cols = ['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'view', 'condition', 'grade']
         corr = filtered_df[[c for c in corr_cols if c in df.columns]].corr()['price'].sort_values(ascending=False).drop('price')
         corr_pos = corr[corr > 0].reset_index()
@@ -408,20 +405,23 @@ with tab3:
         st.plotly_chart(fig_corr, use_container_width=True)
         
     with s2:
-        st.subheader("2. Top 15 Expensive Markets")
+        st.markdown("""<div class="rec-card"><div class="rec-title">📍 Highest Average Values and Areas</div>
+            <div class="rec-text">According to King County Data, it's advisable to review these premium zip codes to gauge the market's upper limit. These neighborhoods represent the highest-value enclaves, trading well above the regional average.</div></div>""", unsafe_allow_html=True)
         exp_zip = df.groupby('zipcode')['price'].median().sort_values(ascending=False).head(15).reset_index()
         fig_exp = px.bar(exp_zip, x='zipcode', y='price', text_auto='.2s', title="Highest Median Price by Zipcode",
                          labels={'zipcode': 'Zip Code', 'price': 'Median Price ($)'}, color='price', color_continuous_scale='Magma')
         fig_exp.update_layout(xaxis_type='category')
         st.plotly_chart(fig_exp, use_container_width=True)
-
+        
     st.markdown("---")
 
     # ROW 2: Seasonality & Renovation
     s3, s4 = st.columns(2)
     
     with s3:
-        st.subheader("3. Best Time to Sell")
+        st.markdown("""<div class="rec-card"><div class="rec-title">🗓️ Best Time to Sell</div>
+                    <div class="rec-text">According to King County Data, it's advisable to list your property in <b>April or May</b>. The market consistently shows a peak in median sales prices during these spring months.</div>
+                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
         # Define the correct order
         month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -441,46 +441,22 @@ with tab3:
         st.plotly_chart(fig_season, use_container_width=True)
 
     with s4:
-        st.subheader("4. Renovation ROI by Era")
+        st.markdown("""<div class="rec-card"><div class="rec-title">🔨 Renovate Strategy</div>
+                    <div class="rec-text"> King County Data shows 1950-1990 (Mid Century) homes yield the highest price jump compared to unrenovated peers.</div>
+                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
         if 'is_renovated' in filtered_df.columns and 'era' in filtered_df.columns:
             reno_era = filtered_df.groupby(['era', 'is_renovated'])['price'].median().reset_index()
             reno_era['Status'] = reno_era['is_renovated'].map({0: 'Not Renovated', 1: 'Renovated'})
             era_order = ['Pre-1950', '1950-1990', 'Post-1990']
             
             fig_reno_era = px.bar(reno_era, x='era', y='price', color='Status', barmode='group',
-                                  category_orders={'era': era_order}, text_auto='.2s', title="Renovated vs. Unrenovated Price by Era",
+                                  category_orders={'era': era_order}, text_auto='.2s', title="Renovated vs. Unrenovated Price | Renovation ROI by Era",
                                   labels={'era': 'Construction Era - Pre 1950 (war) | 1950 - 1990 (Mid) | Post 1990 (Modern)', 'price': 'Median Price ($)'},
                                   color_discrete_map={'Not Renovated': '#95a5a6', 'Renovated': '#27ae60'})
             st.plotly_chart(fig_reno_era, use_container_width=True)
         else:
             st.error("Data for Renovation Analysis not available.")
-
-    # SELLER RECOMMENDATIONS
-    st.markdown("### 💡 General Recommendations for Sellers")
     
-    seller_card_style = """
-    <style>
-    .seller-card {
-        background-color: #e8f4f8; padding: 20px; border-radius: 10px;
-        border-left: 5px solid #3498db; margin-bottom: 10px;
-    }
-    .seller-title { font-weight: bold; font-size: 18px; color: #2c3e50; margin-bottom: 5px; }
-    .seller-text { font-size: 14px; color: #34495e; }
-    </style>
-    """
-    st.markdown(seller_card_style, unsafe_allow_html=True)
-    
-    sc1, sc2, sc3 = st.columns(3)
-    with sc1:
-        st.markdown("""<div class="seller-card"><div class="seller-title">🔨 Renovate Strategy</div>
-                    <div class="seller-text">Data shows 1950-1990 (Mid Century) homes yield the highest price jump compared to unrenovated peers.</div></div>""", unsafe_allow_html=True)
-    with sc2:
-        st.markdown("""<div class="seller-card"><div class="seller-title">🗓️ Timing</div>
-                    <div class="seller-text">It's advisable to list your property in <b>April or May</b>. The market consistently shows a peak in median sales prices during these spring months.</div></div>""", unsafe_allow_html=True)
-    with sc3:
-        st.markdown("""<div class="seller-card"><div class="seller-title">✨ Features to Highlight</div>
-                    <div class="seller-text">It's advisable to highlight <b>Living Space (Sq. Ft.)</b> and <b>Construction Grade</b> in your descriptions, as these are the top drivers of property value.</div></div>""", unsafe_allow_html=True)
-
 # =============================================================================
 # --- TAB 4: PREDICTOR ---
 # -----------------------------------------------------------------------------
@@ -491,15 +467,22 @@ with tab4:
         st.error("Model not loaded.")
     else:
         # --- 1. Role Selection ---
-        st.markdown("#### 1. Select Your Role")
+        st.markdown("#### Select Your Role for a taylored experience:")
         role = st.radio("I am a:", ["Buyer", "Seller"], horizontal=True, label_visibility="collapsed")
-        
-        st.markdown("#### 2. Enter Property Details")
-        st.caption("Ranges below update automatically based on the selected Zipcode.")
+        if role == "Buyer":
+            st.info("As a Buyer, focus on properties that offer the best value for your budget. Set the property features below to see how different features impact price estimation and make an informed offering decision.")
+        else:
+            st.info("As a Seller, understand how various features of your property can influence its market value. Set the property features below to see how the changes in features can affect the value and optimize your listing price.")    
+
+        # --- 2. User Inputs ---
+        if role == "Buyer":
+            st.markdown("#### Specify the Desired Property Features for an accurate Offer:")
+        else:
+            st.markdown("#### Specify the Features of Your Property for a precise Valuation:")
         
         # --- CRITICAL FIX: ZIPCODE OUTSIDE THE FORM ---
         # This allows the app to rerun immediately when Zipcode changes
-        p_zip = st.selectbox("Select Zipcode Area", sorted(df['zipcode'].unique()))
+        p_zip = st.selectbox("Select Zipcode Area (The values below are optimized based on market data for this Zipcode):", sorted(df['zipcode'].unique()))
         
         # Filter context to set min/max/avg defaults based on the selection
         zip_df = df[df['zipcode'] == p_zip]
