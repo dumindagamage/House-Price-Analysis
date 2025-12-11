@@ -4,7 +4,7 @@
 
 # 🏠 King County Housing Analytics 🏠
 
-![](https://github.com/dumindagamage/Home-Value-Analysis/blob/wip/resources/images/home_analysis_banner.png?raw=true)
+![](https://github.com/dumindagamage/Home-Value-Analysis/blob/main/resources/images/home_analysis_banner.png?raw=true)
 
 ---
 ## 📝 Project Overview
@@ -125,7 +125,7 @@ The research methodologies were chosen based on the specific distribution of the
 
 * **Final Selection (Random Forest Regressor):** The Random Forest model was selected for the final Price Prediction tool. It handled the dataset's non-linearities (e.g., the complex interaction between Latitude/Longitude and Price) significantly better than Linear Regression, achieving a robust **R² score of 0.865**.
 
-![](https://github.com/dumindagamage/House-Price-Analysis/blob/main/resources/images/project_board.png?raw=true)
+![](https://github.com/dumindagamage/House-Price-Analysis/blob/main/resources/images/rfmodel.png?raw=true)
 
 
 ## 📉 Analysis techniques used
