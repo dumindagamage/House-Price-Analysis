@@ -1,14 +1,13 @@
 # ==============================================================================================================
-# The dashboard architecture was developed using the single-page Streamlit template provided during the Code Institute masterclass as a foundational framework.
-# Plotly was utilized to deliver a visually appealing and interactive user experience
-# Used the median values of the un captured features to create a template input for the model prediction
+# Framework: Built upon the standardized single-page Streamlit template provided by the Code Institute.
+# UX/UI: Leveraged Plotly to create an engaging, interactive user experience that simplifies complex data exploration.
+# Data Handling: To prevent model failure on limited user inputs, the system constructs a complete input vector by using local median values for all background features.
 # ==============================================================================================================
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
 import joblib
 import os
 
@@ -244,9 +243,43 @@ st.markdown("""
         background-color: #f0f2f6 !important;
         border-radius: 5px;
     }
+    
+    /* Custom Metric Card Style */
+    div.metric-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E0E0E0;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    div.metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    div.metric-value {
+        font-size: 26px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 5px 0;
+    }
+    div.metric-label {
+        font-size: 14px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    div.metric-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
+# =============================================================================
+# --- TABS ---
+# -----------------------------------------------------------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
     "📝 Project Overview", 
     "🔍 Buyer Insights", 
@@ -258,19 +291,75 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # --- TAB 1: SUMMARY ---
 # -----------------------------------------------------------------------------
 with tab1:
-    st.header("Project Overview 📝")
+    # ... inside Tab 1 ...
+    st.subheader("Property Overview")
+
+    # Calculate Stats
+    total_sales = filtered_df.shape[0]
+    avg_price = filtered_df['price'].mean()
+    median_price = filtered_df['price'].median()
+
+    # Create 3 Columns for Cards
     k1, k2, k3 = st.columns(3)
-    k1.metric("Total Sales", f"{filtered_df.shape[0]:,}")
-    k2.metric("Avg Price", f"${filtered_df['price'].mean():,.0f}")
-    k3.metric("Median Price", f"${filtered_df['price'].median():,.0f}")
-    
-    st.markdown("### 🗺️ Sales Map")
-    map_data = filtered_df.sample(min(len(filtered_df), 3000))
+
+    with k1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-icon">🏠</div>
+            <div class="metric-value">{total_sales:,}</div>
+            <div class="metric-label">Total Homes Sold</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-icon">💵</div>
+            <div class="metric-value">${median_price:,.0f}</div>
+            <div class="metric-label">Market Average (Median)</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-icon">📈</div>
+            <div class="metric-value">${avg_price:,.0f}</div>
+            <div class="metric-label">Market Average (Ceiling)</div>
+        </div>
+        """, unsafe_allow_html=True)
+   
+    st.markdown("---")
+
+    # 1. Professional Heading & Instruction
+    st.subheader("🗺️ Geographic Distribution of Property Sales")
+    st.caption("Explore how property prices are distributed across the county. Zoom in to see specific neighborhoods and hover over points for details.")
+
+    # 2. Performance Optimization: Sample data if dataset is too large
+    # Rendering 21k points on a map can lag the browser, so we sample 3,000 points for smoothness.
+    map_data = filtered_df.sample(min(len(filtered_df), 3000), random_state=42)
+
+    # 3. Create Interactive Map
     fig_map = px.scatter_mapbox(
-        map_data, lat="lat", lon="long", color="price", size_max=15, zoom=9,hover_data=['zipcode'],
-        mapbox_style="carto-positron", title="Sold Properties (Color = Price)",
-        color_continuous_scale="RdYlGn_r"
+        map_data, 
+        lat="lat", 
+        lon="long", 
+        color="price", 
+        size="price",                  # Bubble size varies slightly by price
+        size_max=12,                   # Cap the bubble size
+        zoom=9,
+        hover_data=['zipcode', 'price'], # <--- Added Zipcode to Tooltip
+        mapbox_style="carto-positron", 
+        color_continuous_scale="RdYlGn_r", # Red = Expensive, Green = Cheap (or inverted based on preference)
+        labels={'price': 'Sale Price'}
     )
+
+    # 4. Map Layout Adjustments
+    fig_map.update_layout(
+        margin={"r":0,"t":0,"l":0,"b":0}, # Remove white margins
+        height=500                        # Set a fixed height for better visibility
+    )
+
     st.plotly_chart(fig_map, use_container_width=True)
 
 
@@ -298,7 +387,7 @@ with tab2:
     with b1:
         # st.subheader("1. Most Affordable Zipcodes")
         st.markdown("""<div class="rec-card"><div class="rec-title">📍 Location & Affordability</div>
-            <div class="rec-text">According to King County Data, it's advisable to explore zip codes like <b>98002 and 98168</b>. The data identifies these areas as the most affordable pockets, often trading at less than 50% of the county median price.</div></div>""", unsafe_allow_html=True)
+            <div class="rec-text">- The data identifies specific zip codes, such as 98002 and 98168, as distinct affordable clusters that consistently trade at less than 50% of the county median price.</div></div>""", unsafe_allow_html=True)
         affordability = df.groupby('zipcode')['price'].median().sort_values().head(10).reset_index()
         overall_median = df['price'].median()
         
@@ -316,8 +405,8 @@ with tab2:
     with b2:
         # st.subheader("2. Best Value for Money (Size)")
         st.markdown("""<div class="rec-card"><div class="rec-title">📐 Best Value for Money (Size) </div>
-                    <div class="rec-text">King Country Data says to look within the <b>2,000–2,500 sq. ft. bracket</b>. This range often offers the most efficient Price per Sq. Ft. for buyers seeking value.</div>
-                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)  
+                    <div class="rec-text">- The 2,000–2,500 sq. ft. size bracket demonstrates the lowest Price per Square Foot, representing the most efficient volume-to-cost ratio in the market.</div>
+                    <div class="rec-text">- Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)  
         filtered_df['sqft_detailed_bin'] = pd.cut(filtered_df['sqft_living'], bins=range(0, 5000, 250))
         size_value = filtered_df.groupby('sqft_detailed_bin')['price_per_sqft'].median().reset_index()
         size_value['sqft_mid'] = size_value['sqft_detailed_bin'].apply(lambda x: x.mid)
@@ -332,8 +421,8 @@ with tab2:
 
     st.markdown("---")
     st.markdown("""<div class="rec-card"><div class="rec-title">🏗️ House Condition & Grade</div>
-                <div class="rec-text">King Country Data says to prioritize <b>Construction Grade</b> over immediate condition. A high-grade house in fair condition is generally a better investment than a low-grade 'mint condition' property.</div>
-                <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)  
+                <div class="rec-text">- Analysis shows that Construction Grade has a stronger correlation with value than cosmetic Condition. High-grade structures in fair condition historically hold more value than lower-grade properties in perfect condition.</div>
+                <div class="rec-text">- Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)  
 
     b3, b4 = st.columns(2)
     with b3:
@@ -363,8 +452,8 @@ with tab2:
 
     st.markdown("---")
     st.markdown("""<div class="rec-card"><div class="rec-title">🌊 Scenery Attributes</div>
-                    <div class="rec-text">King Country Data says focus more on <b>Space (SqFt) and Grade</b> for functional value unless the View and Waterfront is not the priority. Scenery properties (Specially waterfront) often carry a significantly high price that drives up cost.</div>
-                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
+                    <div class="rec-text">- Waterfront and High-View properties command a significant price jump independent of house size. Properties without these features reflect value based primarily on functional utility (Grade and Sq. Ft.).</div>
+                    <div class="rec-text">- Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
     b5, b6 = st.columns(2)
     with b5:
         view_price = filtered_df.groupby('view')['price'].median().reset_index()
@@ -391,8 +480,8 @@ with tab3:
     
     with s1:
         st.markdown("""<div class="rec-card"><div class="rec-title">✨ Relative Influence of Features </div>
-            <div class="rec-text">According to King County Data, it's advisable to highlight <b>Living Space (Sq. Ft.)</b> and <b>Construction Grade</b> in your descriptions, as these are the top drivers of property value.</div>
-                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
+            <div class="rec-text">- Analysis identifies Living Space (Sq. Ft.) and Construction Grade as the primary determinants of final sale price, outweighing specific room counts and other features.</div>
+                    <div class="rec-text">- Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
         corr_cols = ['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'view', 'condition', 'grade']
         corr = filtered_df[[c for c in corr_cols if c in df.columns]].corr()['price'].sort_values(ascending=False).drop('price')
         corr_pos = corr[corr > 0].reset_index()
@@ -406,7 +495,7 @@ with tab3:
         
     with s2:
         st.markdown("""<div class="rec-card"><div class="rec-title">📍 Highest Average Values and Areas</div>
-            <div class="rec-text">According to King County Data, it's advisable to review these premium zip codes to gauge the market's upper limit. These neighborhoods represent the highest-value enclaves, trading well above the regional average.</div></div>""", unsafe_allow_html=True)
+            <div class="rec-text">- The identified premium zip codes represent the highest valuation tiers in the region, establishing the upper benchmark for market pricing.</div></div>""", unsafe_allow_html=True)
         exp_zip = df.groupby('zipcode')['price'].median().sort_values(ascending=False).head(15).reset_index()
         fig_exp = px.bar(exp_zip, x='zipcode', y='price', text_auto='.2s', title="Highest Median Price by Zipcode",
                          labels={'zipcode': 'Zip Code', 'price': 'Median Price ($)'}, color='price', color_continuous_scale='Magma')
@@ -420,8 +509,8 @@ with tab3:
     
     with s3:
         st.markdown("""<div class="rec-card"><div class="rec-title">🗓️ Best Time to Sell</div>
-                    <div class="rec-text">According to King County Data, it's advisable to list your property in <b>April or May</b>. The market consistently shows a peak in median sales prices during these spring months.</div>
-                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
+                    <div class="rec-text">- Historical sales data reveals a consistent cyclical peak, with median transaction prices and market activity reaching their highest levels during April and May.</div>
+                    <div class="rec-text">- Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
         # Define the correct order
         month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -442,8 +531,8 @@ with tab3:
 
     with s4:
         st.markdown("""<div class="rec-card"><div class="rec-title">🔨 Renovate Strategy</div>
-                    <div class="rec-text"> King County Data shows 1950-1990 (Mid Century) homes yield the highest price jump compared to unrenovated peers.</div>
-                    <div class="rec-text">Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
+                    <div class="rec-text">- Comparative analysis by era demonstrates that Mid-Century homes (1950-1990) exhibit the largest value appreciation following renovation, outperforming both pre-war and modern builds.</div>
+                    <div class="rec-text">- Filter by  <b>Zipcode</b> to analyze specific local market information.</div></div>""", unsafe_allow_html=True)
         if 'is_renovated' in filtered_df.columns and 'era' in filtered_df.columns:
             reno_era = filtered_df.groupby(['era', 'is_renovated'])['price'].median().reset_index()
             reno_era['Status'] = reno_era['is_renovated'].map({0: 'Not Renovated', 1: 'Renovated'})
@@ -476,9 +565,9 @@ with tab4:
 
         # --- 2. User Inputs ---
         if role == "Buyer":
-            st.markdown("#### Specify the Desired Property Features for an accurate Offer:")
+            st.markdown("#### Specify the Desired Property Features for an accurate Offer Eatimation:")
         else:
-            st.markdown("#### Specify the Features of Your Property for a precise Valuation:")
+            st.markdown("#### Specify the Features of Your Property for a more precise Valuation:")
         
         # --- CRITICAL FIX: ZIPCODE OUTSIDE THE FORM ---
         # This allows the app to rerun immediately when Zipcode changes
@@ -599,7 +688,7 @@ with tab4:
                         <div class="highlight-seller">
                             <h4 style="margin-top:0;">🚀 Seller Strategy</h4>
                             <p><b>Listing Potential:</b> You could aggressively list near <b>${max_p:,.0f}</b> if staged well.</p>
-                            <p>A competitive quick-sale price would be around <b>${min_p:,.0f}</b> taking the condition and necessary repairs into account.</p>
+                            <p>A competitive quick-sale floor price would be around <b>${min_p:,.0f}</b> taking the condition and necessary repairs into account.</p>
                         </div>
                     """, unsafe_allow_html=True)
                     
